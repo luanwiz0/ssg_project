@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team_h.wishbook.dao.mybatis.mapper.BookMapper">
+
+	<insert id="addBook" parameterType="Book">
+  		<selectKey keyProperty="bookId" resultType="int" order="BEFORE">
+  			SELECT Sequence_bookId.nextval FROM DUAL
+  		</selectKey>
+	  		INSERT INTO BOOK (bookId, title, author,  publisher, price, category, description, imageUrl) 
+	  		values (#{bookId}, #{title}, #{author}, #{publisher}, #{price}, #{category}, #{description}, #{imageUrl})
+  	</insert>
+
+	<!-- <update id="updateBook" parameterType="Book">
+  		update book set 
+	 		title=#{title}, 
+	 		author=#{author}, 
+	 		publisher=#{publisher}, 
+	 		description=#{description}, 
+	 		imageUrl=#{imageUrl} 
+  		where bookId=#{bookId}
+  	</update> -->
+  	
+<!--   	<delete id="deleteBook">
+  		DELETE FROM BOOK
+  		WHERE BOOKID = ${bookId}
+  	</delete> -->
+  	
+	<insert id="addReview">
+  		<selectKey keyProperty="reviewId" resultType="int" order="BEFORE">
+  			SELECT Sequence_reviewId.nextval FROM DUAL
+  		</selectKey>
+	  		INSERT INTO Review (reviewId, bookId, content, userId) 
+	  		values(#{reviewId}, #{bookId}, #{content}, #{userId})
+  	</insert>
+  	
+  	<select id="getReviewList" resultType="com.team_h.wishbook.domain.Review">
+  		SELECT *
+  		FROM REVIEW
+  		WHERE BOOKID = #{bookId}
+  	</select>
+
+	<select id="searchBookByTitle" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE TITLE LIKE '%'||#{search}||'%'
+  		ORDER BY BOOKID DESC
+  	</select>
+  	
+  	<select id="searchBookByAuthor" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE AUTHOR LIKE '%'||#{search}||'%'
+  		ORDER BY BOOKID DESC
+  	</select>
+	
+</mapper>

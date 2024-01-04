@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.team_h.wishbook.dao.mybatis.mapper.AuctionMapper">
+
+  <!-- 경매 추가  -->
+  <insert id="addAuction" parameterType="Auction">
+  	<selectKey keyProperty="auctionId" resultType="int" order="BEFORE">	
+		select auctionIdSeq.nextval FROM DUAL 
+	</selectKey>
+    INSERT INTO AUCTION
+      (AUCTIONID, BOOKID, DEADLINE, STATUS, STARTPRICE, CURRPRICE)
+    VALUES
+      (#{auctionId}, #{bookId}, #{deadLine}, #{status}, #{startPrice}, #{startPrice})
+  </insert>
+
+ <!-- 경매 책 검색 -->
+	<select id="getBookInfoByTitle" resultType="Book">
+	 		SELECT *
+	 		FROM BOOK
+	 		WHERE TITLE LIKE '%'||#{title}||'%'
+ 	</select>
+
+<!-- 경매 수정 -->
+  <update id="updateAuction" parameterType="Auction"> 
+  	UPDATE AUCTION SET
+  		DEADLINE = #{deadLine}
+  	WHERE AUCTIONID = #{auctionId}
+  </update>
+ 
+ <!-- 경매 삭제 -->
+  <delete id="deleteAuction">
+  	DELETE FROM AUCTION
+  	WHERE AUCTIONID = #{auctionId}
+  </delete>  
+  
+  
+ <!-- 경매 게시글 상세정보 -->
+  <select id="getAuctionInfo" resultType="com.team_h.wishbook.domain.Auction">
+  	SELECT A.AUCTIONID AS auctionId,
+  	A.BOOKID AS bookId,
+  	B.TITLE AS title,
+  	B.AUTHOR AS author,
+  	B.PUBLISHER AS publisher,
+	B.IMAGEURL AS imageUrl,
+	A.DEADLINE AS deadLine,
+  	A.STATUS AS status,
+  	A.STARTPRICE AS startPrice,
+  	A.CURRPRICE AS currPrice,
+  	A.FINALPRICE AS finalPrice,
+  	A.USERID AS userId
+  	FROM AUCTION A JOIN BOOK B
+  	ON B.BOOKID = A.BOOKID 
+  	WHERE AUCTIONID = #{auctionId} 
+  </select>
+  
+	<!-- 경매 게시글리스트 불러오기 -->
+   <select id="getAuctionList" resultType="com.team_h.wishbook.domain.Auction">
+  	SELECT A.AUCTIONID AS auctionId,
+  	A.BOOKID AS bookId,
+  	B.TITLE AS title,
+  	B.AUTHOR AS author,
+  	B.PUBLISHER AS publisher,
+	B.IMAGEURL AS imageUrl,
+	A.DEADLINE AS deadLine,
+  	A.STATUS AS status,
+  	A.STARTPRICE AS startPrice,
+  	A.CURRPRICE AS currPrice,
+  	A.FINALPRICE AS finalPrice
+  	FROM AUCTION A JOIN BOOK B
+  	ON B.BOOKID = A.BOOKID 
+  	order by DEADLINE desc
+  </select>
+  
+   <!-- 경매 입찰 -->
+  <update id="applyAuctionBid" parameterType="Auction">
+   	UPDATE AUCTION SET
+  		STATUS = 1,
+  		USERID = #{userId},
+  		CURRPRICE =#{currPrice}
+  	WHERE AUCTIONID = #{auctionId}
+  </update>
+  
+  <!-- 경매 마감 -->
+   <update id="updateAuctionStatus" parameterType="Auction"> 
+  	UPDATE AUCTION SET
+  		FINALPRICE = #{currPrice},
+  		STATUS = 2
+  	WHERE AUCTIONID = #{auctionId}
+  </update>
+  
+  
+   
+</mapper>

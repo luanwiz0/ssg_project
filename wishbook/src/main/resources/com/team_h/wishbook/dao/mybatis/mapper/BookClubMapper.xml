@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team_h.wishbook.dao.mybatis.mapper.BookClubMapper">
+
+<!-- 목록 확인 -->
+<select id="getBookClubList" resultType="com.team_h.wishbook.domain.BookClub">
+	SELECT * 
+	FROM BOOKCLUB
+	JOIN BOOK
+	ON BOOKCLUB.BOOKID = BOOK.BOOKID
+</select>
+
+<!-- 정보 가져오기 -->
+<select id="getBookClub" resultType="com.team_h.wishbook.domain.BookClub">
+	SELECT * 
+	FROM BOOKCLUB
+	JOIN BOOK
+	ON BOOKCLUB.BOOKID = BOOK.BOOKID
+	WHERE BOOKCLUB.CLUBID = #{bookClubId}
+</select>
+
+<!-- 독서모임 추가 -->
+<insert id="addBookClub" parameterType="com.team_h.wishbook.controller.BookClubInfo">
+	<selectKey keyProperty="clubId" resultType="int" order="BEFORE">
+  		SELECT Sequence_bookclubId.nextval FROM DUAL
+  	</selectKey>
+  	INSERT INTO bookclub
+  		(clubId, userId, description, currnum, maxnum, day, starttime, hour, address, bookID, clubname)
+  	VALUES (#{clubId}, #{userId}, #{description}, #{currNum}, #{maxNum}, #{day}, #{startTime}, #{hour}, #{address}, #{bookId}, #{clubName})
+</insert>
+
+<!-- 독서모임 수정 -->
+<update id="updateBookClub" parameterType="com.team_h.wishbook.controller.BookClubInfo">
+  	UPDATE BOOKCLUB SET
+  		CLUBNAME = #{clubName},
+  		DESCRIPTION = #{description},
+  		CURRNUM = #{currNum},
+  		MAXNUM = #{maxNum},
+  		DAY = #{day},
+  		STARTTIME = #{startTime},
+  		HOUR = #{hour},
+  		ADDRESS = #{address},
+  		BOOKID = #{bookId}
+   	WHERE CLUBID = #{clubId}
+</update>
+
+<!-- 독서모임 삭제 -->
+<delete id="deleteBookClub">
+  	DELETE FROM BOOKCLUB
+  		WHERE CLUBID = #{clubId}
+</delete>
+
+<!-- 독서모임 사용자 목록에 추가 -->
+<insert id="registerBookClub">
+  	INSERT INTO CLUBMEMBER
+  		(CLUBID, USERID)
+  	VALUES (#{bookClubId}, #{memberId})
+</insert>
+
+<!-- 독서모임 신청 취소 -->
+<delete id="cancelBookClub">
+	DELETE FROM BOOKCLUB
+	WHERE CLUBID = #{bookClubId}
+		AND USERID = #{memberId}		
+</delete>
+
+<!-- 독서모임 현재 인원 변경 -->
+<update id="changeBookClubNum">
+	UPDATE BOOKCLUB SET
+		CURRNUM = #{currNum}
+	WHERE CLUBID = #{bookClubId}
+</update>
+
+<select id="getUserList" resultType="com.team_h.wishbook.domain.Account">
+	SELECT *
+	FROM ACCOUNT
+	JOIN CLUBMEMBER
+	ON ACCOUNT.USERID = CLUBMEMBER.USERID
+	WHERE CLUBMEMBER.CLUBID = #{bookClubId}
+</select>
+
+ </mapper>

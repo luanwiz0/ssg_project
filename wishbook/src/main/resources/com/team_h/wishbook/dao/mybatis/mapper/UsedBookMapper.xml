@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team_h.wishbook.dao.mybatis.mapper.UsedBookMapper">
+	
+	<!-- UsedBook 등록 -->
+  	<insert id="addUsedBook" parameterType="UsedBook">
+  		<selectKey keyProperty="usedBookId" resultType="int" order="BEFORE">
+  			SELECT Sequence_usedItemId.nextval FROM DUAL
+  		</selectKey>
+  		INSERT INTO UsedItem
+  			(usedItemId, discountPrice, bookStatus, userId,
+  			sellStatus, bookId)
+  		VALUES (#{usedBookId}, #{discountPrice}, #{bookStatus}, #{userId},
+  			 #{sellStatus}, #{bookId})
+  	</insert>
+  	
+	<!-- UsedBook 수정 -->
+	<update id="updateUsedBook" parameterType="com.team_h.wishbook.domain.UsedBook">
+		UPDATE usedItem SET 
+			discountPrice = #{discountPrice}, 
+			bookStatus = #{bookStatus},
+			sellStatus = #{sellStatus}
+		WHERE usedItemId = #{usedBookId}
+	</update>
+	
+	<!-- UsedBook 삭제 -->
+	<delete id="deleteUsedBook">
+		DELETE from usedItem 
+		WHERE usedItemId = #{usedBookId}
+	</delete>
+	
+	
+	<!-- title로 UsedBook 객체 찾아오는 거 -->
+	<select id="searchUsedBookName" resultType="com.team_h.wishbook.domain.UsedBook">
+		SELECT 
+			u.usedItemId AS usedBookId,
+			u.bookId AS bookId,
+			u.discountPrice AS dicountPrice,
+			u.bookStatus AS bookStatus,
+			u.sellStatus AS sellStatus,
+			u.userId AS userId,
+			<!-- 자동으로 Book 객체 생성 -->
+			b.title AS title, 
+			b.author AS author,
+			b.publisher AS publisher,
+			b.price AS price,
+			<!-- b.imageUrl AS imageUrl, -->
+			b.category AS category
+		FROM UsedItem u, Book b
+		WHERE u.bookId = b.bookId AND 1 = 1
+		<if test="keyword != null and keyword != ''">
+			and title like CONCAT('%',#{title},'%') 
+		</if>
+	</select>
+	
+	<!-- useBookId로 UsedBook 상세정보 보는 것 -->
+	<select id="getUsedBookInfo" resultType="com.team_h.wishbook.domain.UsedBook">
+		SELECT 
+			u.usedItemId AS usedBookId,
+			u.bookId AS bookId,
+			u.discountPrice AS discountPrice,
+			u.bookStatus AS bookStatus,
+			u.sellStatus AS sellStatus,
+			u.userId AS userId,
+			<!-- 자동으로 Book 객체 생성 -->
+			b.title AS title, 
+			b.author AS author,
+			b.publisher AS publisher,
+			b.price AS price,
+			b.imageUrl AS imageUrl,
+			b.category AS category
+		FROM UsedItem u, Book b
+		WHERE u.bookId = b.bookId 
+		AND u.usedItemId=#{usedBookId}
+	</select>
+	
+	<!-- 전체 UsedBook 리스트 가져오는거 -->
+	<select id="getUsedBookList" parameterType="com.team_h.wishbook.domain.UsedBook" resultType="UsedBook">
+		SELECT 
+			u.usedItemId AS usedBookId,
+			u.bookId AS bookId,
+			u.bookStatus AS bookStatus,
+			u.sellStatus AS sellStatus,
+	        u.userId AS userId,
+			b.title AS title, 
+			b.author AS author,
+			b.publisher AS publisher,
+			b.price AS price,
+			u.discountPrice AS discountPrice,
+			b.imageUrl AS imageUrl,
+			b.category AS category,
+	        a.sellNum AS sellNum
+		FROM UsedItem u, Book b, Account a
+		WHERE u.bookId = b.bookId 
+		AND a.userId = u.userId
+	</select>
+	
+	<!-- userId로 UsedBook 객체 리스트 가져오는거 -->
+	<select id="getUsedBookByUserId" resultType="UsedBook">
+		SELECT 
+			u.usedItemId AS usedBookId,
+			u.bookId AS bookId,
+			u.bookStatus AS bookStatus,
+			u.sellStatus AS sellStatus,
+	        u.userId AS userId,
+			b.title AS title, 
+			b.author AS author,
+			b.publisher AS publisher,
+			b.price AS price,
+			u.discountPrice AS discountPrice,
+			b.imageUrl AS imageUrl,
+			b.category AS category
+		FROM UsedItem u, Book b
+		WHERE u.bookId = b.bookId 
+		AND u.userId = #{userId}
+	</select>
+	
+	<!-- 책 이름으로 책 찾기 -->
+  	<select id="searchBookByTitle" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE TITLE LIKE '%'||#{title}||'%'
+  	</select>
+  	
+  	<!-- bookId받아서 book반환 -->
+  	<select id="getBookById" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE BOOKID = #{bookId}
+  	</select>
+  	
+  	<!-- userId로 UsedBook의 discountPrice 가격 가져오기 -->
+  	<select id="getUserUsedBookOrderDiscountPrice" resultType="UsedBook">
+  		SELECT b.imageUrl, b.title AS title, 
+  			   u.discountPrice AS discountPrice, 
+  		       o.quantity AS quantity
+		FROM UsedItem u, OrderList o, Book b
+		WHERE o.bookId = u.bookId AND o.kind = '중고책' 
+		  AND u.bookId = b.bookId AND o.userId = #{userId}
+  	</select>
+	
+</mapper>

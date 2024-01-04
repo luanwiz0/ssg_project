@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.team_h.wishbook.dao.mybatis.mapper.GroupPurchaseMapper">
+ 
+ 	<!-- 공동구매 리스트 반환 -->
+	<select id="getGroupPurchaseList" resultType="com.team_h.wishbook.domain.GroupPurchase">
+		SELECT GROUPITEM.GROUPITEMID AS groupId,
+	          GROUPITEM.BOOKID AS bookId,
+	          BOOK.TITLE AS title,
+	          BOOK.AUTHOR AS author,
+	          BOOK.PRICE AS bookPrice,
+	          BOOK.IMAGEURL AS imageUrl,
+	          GROUPITEM.MAXCUSTOMNUM AS maxCustomNum,
+	          GROUPITEM.MINCUSTOMNUM AS minCustomNum,
+	          GROUPITEM.CUSTOMERNUM AS customerNum,
+	          GROUPITEM.DEADLINE AS deadline,
+	          GROUPITEM.DISCOUNTRATE AS discountRate,
+	          GROUPITEM.STATUS AS status
+	    FROM GROUPITEM
+	    JOIN BOOK
+	    ON GROUPITEM.BOOKID = BOOK.BOOKID
+  	</select>
+  
+  	<!-- status 설정 -->
+  	<update id="endStatus">
+  		UPDATE GROUPITEM SET
+  			STATUS = #{end}
+  		WHERE GROUPITEMID = #{groupId}
+  	</update>
+  	
+  	<update id="ongoingStatus">
+  		UPDATE GROUPITEM SET
+  			STATUS = #{ongoing}
+  		WHERE GROUPITEMID = #{groupId}
+  	</update>
+  	
+  	<!-- groupId받아서 GroupPurchase반환 -->
+  	<select id="getGroupPurchaseById" resultType="GroupPurchase">
+  		SELECT GROUPITEM.GROUPITEMID AS groupId,
+	          GROUPITEM.BOOKID AS bookId,
+	          BOOK.TITLE AS title,
+	          BOOK.AUTHOR AS author,
+	          BOOK.PRICE AS bookPrice,
+	          BOOK.IMAGEURL AS imageUrl,
+	          GROUPITEM.MAXCUSTOMNUM AS maxCustomNum,
+	          GROUPITEM.MINCUSTOMNUM AS minCustomNum,
+	          GROUPITEM.CUSTOMERNUM AS customerNum,
+	          GROUPITEM.DEADLINE AS deadline,
+	          GROUPITEM.DISCOUNTRATE AS discountRate,
+	          GROUPITEM.STATUS AS status
+  		FROM GROUPITEM
+  		JOIN BOOK
+  		ON GROUPITEM.BOOKID = BOOK.BOOKID
+  		AND GROUPITEMID = #{groupId}
+  	</select>
+  	
+  	<!-- 책 이름으로 책 찾기 -->
+  	<select id="searchBookByTitle" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE TITLE LIKE '%'||#{title}||'%'
+  	</select>
+  	
+  	<!-- bookId받아서 book반환 -->
+  	<select id="getBookById" resultType="Book">
+  		SELECT *
+  		FROM BOOK
+  		WHERE BOOKID = #{bookId}
+  	</select>
+  	
+  	<!-- 공동구매 등록 (관리자) -->
+  	<insert id="addGroupPurchase" parameterType="GroupPurchase">
+  		<selectKey keyProperty="groupId" resultType="int" order="BEFORE">
+  			SELECT Sequence_groupItemId.nextval FROM DUAL
+  		</selectKey>
+  		INSERT INTO GROUPITEM
+  			(GROUPITEMID, CUSTOMERNUM, DISCOUNTRATE, DEADLINE, STATUS, 
+  				BOOKID, MINCUSTOMNUM, MAXCUSTOMNUM)
+  		VALUES (#{groupId}, #{customerNum}, #{discountRate}, #{deadline}, #{status}, 
+  				#{bookId}, #{minCustomNum}, #{maxCustomNum})
+  	</insert>
+  	
+  	<select id="getGroupItemIdById" resultType="java.lang.Integer">
+  		SELECT GROUPORDERLISTID AS groupOrderListId
+  		FROM GROUPORDERLIST
+  		WHERE GROUPITEMID = #{groupId}
+  		AND USERID = #{userId}
+  	</select>
+  	
+  	<update id="updateGroupPurchase" parameterType="com.team_h.wishbook.domain.GroupPurchase">
+  		UPDATE GROUPITEM SET 
+  			CUSTOMERNUM = #{customerNum},
+  			DISCOUNTRATE = #{discountRate},
+  			DEADLINE = #{deadline},
+  			STATUS = #{status},
+  			BOOKID = #{bookId},
+      		MINCUSTOMNUM = #{minCustomNum},
+      		MAXCUSTOMNUM = #{maxCustomNum}
+   		WHERE GROUPITEMID = #{groupId}
+  	</update>
+  	
+  	<delete id="deleteGroupPurchaseById">
+  		DELETE FROM GROUPITEM
+  		WHERE GROUPITEMID = #{groupId}
+  	</delete>
+  	
+  	<select id="getMemberListByGroupId" resultType="Account">
+  		SELECT ACCOUNT.*
+  		FROM GROUPORDERLIST
+  		JOIN ACCOUNT
+  		ON GROUPORDERLIST.USERID = ACCOUNT.USERID
+  		AND GROUPITEMID = #{groupId}
+  	</select>
+  	 
+  	<insert id="registerGroupPurchase">
+  		<selectKey keyProperty="groupOrderListId" resultType="int" order="BEFORE">
+  			SELECT Sequence_groupOrderListId.nextval FROM DUAL
+  		</selectKey>
+	  		INSERT INTO GROUPORDERLIST (GROUPITEMID, USERID, GROUPORDERLISTID)
+  		VALUES (#{groupId}, #{userId}, #{groupOrderListId})
+  	</insert>
+  	
+  	<update id="plusCustomerNum">
+  		UPDATE GROUPITEM SET
+  			CUSTOMERNUM = CUSTOMERNUM + 1
+  		WHERE GROUPITEMID = #{groupId}
+  	</update>
+  	
+  	<update id="minusCustomerNum">
+  		UPDATE GROUPITEM SET
+  			CUSTOMERNUM = CUSTOMERNUM - 1
+  		WHERE GROUPITEMID = #{groupId}
+  	</update>
+  	 
+  	 <delete id="cancelGroupPurchase">
+  	 	DELETE FROM GROUPORDERLIST
+  		WHERE GROUPITEMID = #{groupId}
+  		AND USERID = #{userId}
+  	 </delete>
+  	 
+  	<select id="getGroupItemIdByUserId" resultType="java.lang.Integer">
+  		SELECT GROUPITEMID AS groupId
+  		FROM GROUPORDERLIST
+  		WHERE USERID = #{userId}
+  	</select>
+  	
+  	<select id="getCartGroupIdById" resultType="java.lang.Integer">
+  		SELECT CARTITEMID AS cartId
+  		FROM CART
+  		WHERE USERID = #{userId} AND GROUPID = #{groupId}
+  	</select>
+ </mapper>
